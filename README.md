@@ -29,14 +29,14 @@ Step 2: a cluster!
 * Deposit money to account 10000 on node1. 
 * Check account balances on various nodes and ensure they all agree. 
 * Withdraw money from account 10000 on node2. 
-* Check account balances on various nodes and ensure they all agree. 
+* Check account balances on various nodes, and ensure they all agree. 
 * Add a new node to the cluster. 
 * Check account balances from new node and ensure they are correct.
 * Disconnect node1 from the cluster. 
 * Deposit money to account 10000 on node1.
-* Ensure the deposit is refleced on node1, but not on the other nodes.
+* Ensure the deposit is reflected on node1, but not on the other nodes.
 * Deposit money to account 20000 on node2.
-* Ensure the deposit is refleced on node2 and the other connected nodes, but not on node1.
+* Ensure the deposit is reflected on node2 and the other connected nodes, but not on node1.
 * Rejoin node1 to the cluster.
 * Ensure the balances for each node all jive.
 
