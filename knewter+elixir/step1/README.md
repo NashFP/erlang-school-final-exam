@@ -13,7 +13,7 @@ This super-simple ATM will support the following actions.  An account is created
 by depositing money to it.
 
 ````
-Atm.start() -> started
+Atm.start() -> :started
 Atm.check_balance(account_number) -> {:balance, amount} | :no_such_account | :atm_closed
 Atm.withdraw(account_number, amount) -> {:new_balance, amount} | :overdrawn | :no_such_account | :atm_closed
 Atm.deposit(account_number, amount) -> {:new_balance, amount} | :atm_closed
