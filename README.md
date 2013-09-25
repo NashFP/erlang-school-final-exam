@@ -36,7 +36,7 @@ Step 2: a cluster!
 * Deposit money to account 10000 on node1.
 * Ensure the deposit is refleced on node1, but not on the other nodes.
 * Deposit money to account 20000 on node2.
-* Ensure the deposit is refleced on node2 and the other conneced nodes, but not on node1.
+* Ensure the deposit is refleced on node2 and the other connected nodes, but not on node1.
 * Rejoin node1 to the cluster.
 * Ensure the balances for each node all jive.
 
