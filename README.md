@@ -9,7 +9,7 @@ We will start with a super simple server. It will help everyone get comfortable 
 
 It will also show the idea of a server loop, messages and a receive block.
 
-This super-simple ATM will support the following actions. An account is created by deposting money to it.
+This super-simple ATM will support the following actions. An account is created by depositing money to it.
 
 ````
 atm:start() -> started
