@@ -6,14 +6,18 @@ defmodule Atm do
   end
 
   def check_balance(account_number) do
-  	:gen_server.call(:atm,{:check_balance,account_number})
+  	call({:check_balance,account_number})
   end
 
   def withdraw(account_number, amount) do
-  	:gen_server.call(:atm,{:withdraw,account_number,amount})
+  	call({:withdraw,account_number,amount})
   end
 
   def deposit(account_number, amount) do
-  	:gen_server.call(:atm,{:deposit,account_number,amount})
+  	call({:deposit,account_number,amount})
+  end
+
+  defp call(request) do
+  	:gen_server.call(:atm,request);
   end
 end
