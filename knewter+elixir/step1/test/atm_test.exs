@@ -15,8 +15,12 @@ defmodule AtmTest do
   end
 
   test "allows depositing into an account number" do
-    Atm.deposit("12345", 10)
-    assert Atm.balance("12345") == 10
+    assert Atm.deposit("12345", 10) == {:new_balance, 10}
+  end
+
+  test "allows checking balance" do
+    Atm.deposit("123", 10)
+    assert Atm.check_balance("123") == {:balance, 10}
   end
 
   setup do

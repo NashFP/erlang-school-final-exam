@@ -12,15 +12,19 @@ defmodule Atm do
   end
 
   def deposit(account_number, amount) do
-    :atm <- {:deposit, account_number, amount}
+    :atm <- {:deposit, account_number, amount, self()}
+    receive do
+      {:new_balance, account_number, amount} -> {:new_balance, amount}
+      :no_such_account -> :no_such_account
+    end
   end
 
-  def balance(account_number) do
+  def check_balance(account_number) do
     :atm <- {:balance, account_number, self()}
     receive do
-      {:balance, account_number, amount} -> amount
+      {:balance, account_number, amount} -> {:balance, amount}
+      :no_such_account -> :no_such_account
     end
-    amount
   end
 
   def await() do
@@ -28,18 +32,25 @@ defmodule Atm do
   end
   def await(state) do
     receive do
-      {:deposit, account_number, amount} ->
+      {:deposit, account_number, amount, requestor} ->
         state = handle_deposit_into(account_number, amount, state)
+        case get_balance(account_number) do
+          :no_such_account -> requestor <- :no_such_account
+          new_balance -> requestor <- {:new_balance, account_number, new_balance}
+        end
       {:balance, account_number, requestor} ->
-        requestor <- {:balance, account_number, check_balance(account_number)}
+        case get_balance(account_number) do
+          :no_such_account -> requestor <- :no_such_account
+          balance -> requestor <- {:balance, account_number, balance}
+        end
     end
     await(state)
   end
 
-  def check_balance(:no_such_account) do
+  def get_balance(:no_such_account) do
     :no_such_account
   end
-  def check_balance(account_number) when is_pid(account_number) do
+  def get_balance(account_number) when is_pid(account_number) do
     account_number <- {:check_balance, self()}
     receive do
       {:balance, amount} -> amount
@@ -47,9 +58,9 @@ defmodule Atm do
       10 -> :timeout
     end
   end
-  def check_balance(account_number) do
+  def get_balance(account_number) do
     account = get_account(account_number)
-    check_balance(account)
+    get_balance(account)
   end
 
   def handle_deposit_into(account_number, amount, state) do
