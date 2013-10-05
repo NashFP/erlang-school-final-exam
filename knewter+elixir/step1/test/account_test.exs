@@ -19,11 +19,8 @@ defmodule AccountTest do
     verify_balance_is 10, account
   end
 
-  # NOTE: It would be better to use assert_receive in this, but https://github.com/elixir-lang/elixir/issues/1724
   def verify_balance_is(expected_balance, account) do
     account <- {:check_balance, self()}
-    receive do
-      {:balance, balance} -> assert(balance == expected_balance)
-    end
+    assert_receive {:balance, ^expected_balance}
   end
 end

@@ -22,3 +22,18 @@ Atm.stop() -> :stopped | :atm_closed
 
 To create an account, deposit money to it. To start we won't bother with PIN
 numbers.
+
+## Development
+
+To get the dependencies:
+
+```bash
+$ mix deps.get
+```
+
+To start a console:
+
+```bash
+$ iex -S mix
+```
+

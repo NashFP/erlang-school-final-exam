@@ -5,16 +5,11 @@ defmodule Account do
 
   def await(events) do
     receive do
-      {:check_balance, pid} ->
-        divulge_balance(pid, events)
-        await(events)
-      {:deposit, amount} ->
-        events = deposit(amount, events)
-        await(events)
-      {:withdraw, amount} ->
-        events = withdraw(amount, events)
-        await(events)
+      {:check_balance, pid} -> divulge_balance(pid, events)
+      {:deposit, amount}    -> events = deposit(amount, events)
+      {:withdraw, amount}   -> events = withdraw(amount, events)
     end
+    await(events)
   end
 
   # Adds a deposit for the appropriate amount at the end of the events, and returns them
@@ -28,13 +23,13 @@ defmodule Account do
   end
 
   defp divulge_balance(pid, events) do
-    pid <- calculate_balance(events)
+    pid <- {:balance, calculate_balance(events)}
   end
 
   defp calculate_balance(events) do
     deposits = sum(just_deposits(events))
     withdrawals = sum(just_withdrawals(events))
-    {:balance, deposits - withdrawals}
+    deposits - withdrawals
   end
 
   defp sum(events) do
