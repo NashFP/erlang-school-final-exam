@@ -10,8 +10,8 @@ defmodule Step1.Mixfile do
 
   # Configuration for the OTP application
   def application do
-    [
-      applications: [:gproc]
+    [ registered: [:step1],
+      env: [gproc_dist: :all]
     ]
   end
 
