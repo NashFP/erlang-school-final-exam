@@ -8,22 +8,55 @@ defmodule Atm do
   end
 
   def stop do
-    Process.unregister(:atm)
+    case is_closed? do
+      true -> :atm_closed
+      _else ->
+        Process.unregister(:atm)
+        :stopped
+    end
   end
 
   def deposit(account_number, amount) do
-    :atm <- {:deposit, account_number, amount, self()}
-    receive do
-      {:new_balance, account_number, amount} -> {:new_balance, amount}
-      :no_such_account -> :no_such_account
+    if is_closed? do
+      :atm_closed
+    else
+      :atm <- {:deposit, account_number, amount, self()}
+      receive do
+        {:new_balance, account_number, amount} -> {:new_balance, amount}
+        :no_such_account -> :no_such_account
+      end
+    end
+  end
+
+  def withdraw(account_number, amount) do
+    if is_closed? do
+      :atm_closed
+    else
+      :atm <- {:withdraw, account_number, amount, self()}
+      receive do
+        {:new_balance, account_number, amount} -> {:new_balance, amount}
+        :overdrawn -> :overdrawn
+        :no_such_account -> :no_such_account
+      end
     end
   end
 
   def check_balance(account_number) do
-    :atm <- {:balance, account_number, self()}
-    receive do
-      {:balance, account_number, amount} -> {:balance, amount}
-      :no_such_account -> :no_such_account
+    if is_closed? do
+      :atm_closed
+    else
+      :atm <- {:balance, account_number, self()}
+      receive do
+        {:balance, account_number, amount} -> {:balance, amount}
+        :no_such_account -> :no_such_account
+      end
+    end
+  end
+
+  def is_closed? do
+    case Process.whereis(:atm) do
+      nil -> true
+      _else -> false
     end
   end
 
@@ -33,10 +66,19 @@ defmodule Atm do
   def await(state) do
     receive do
       {:deposit, account_number, amount, requestor} ->
-        state = handle_deposit_into(account_number, amount, state)
+        handle_deposit_into(account_number, amount)
         case get_balance(account_number) do
           :no_such_account -> requestor <- :no_such_account
           new_balance -> requestor <- {:new_balance, account_number, new_balance}
+        end
+      {:withdraw, account_number, amount, requestor} ->
+        handle_withdrawal_from(account_number, amount)
+        case get_balance(account_number) do
+          :no_such_account -> requestor <- :no_such_account
+          new_balance -> cond do
+            new_balance < 0 -> requestor <- :overdrawn
+            new_balance -> requestor <- {:new_balance, account_number, new_balance}
+          end
         end
       {:balance, account_number, requestor} ->
         case get_balance(account_number) do
@@ -63,9 +105,16 @@ defmodule Atm do
     get_balance(account)
   end
 
-  def handle_deposit_into(account_number, amount, state) do
+  def handle_deposit_into(account_number, amount) do
     account = find_or_create_account(account_number)
     account <- {:deposit, amount}
+  end
+
+  def handle_withdrawal_from(account_number, amount) do
+    case get_account(account_number) do
+      :no_such_account -> :no_such_account
+      account -> account <- {:withdraw, amount}
+    end
   end
 
   def find_or_create_account(account_number) do
