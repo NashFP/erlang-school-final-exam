@@ -128,7 +128,7 @@ defmodule Atm do
 
   def get_account(account_number) do
     try do
-      :gproc.get_value({:n, :g, account_number})
+      :gproc.get_value({:n, :l, account_number})
     rescue
       [ArgumentError] -> :no_such_account
     end
@@ -136,6 +136,6 @@ defmodule Atm do
 
   def register_account(account_number) do
     account = spawn_link(Account, :start, [])
-    :gproc.reg({:n, :g, account_number}, account)
+    :gproc.reg({:n, :l, account_number}, account)
   end
 end
