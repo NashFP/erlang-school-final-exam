@@ -26,10 +26,10 @@ doc:
 
 dialyzer: .dialyzer_plt
 	@echo "Running Dialyzer..."
-	@dialyzer --plt .dialyzer_plt --src -r src -DTEST -Wunmatched_returns -Werror_handling -Wrace_conditions -Wunderspecs
+	@dialyzer --quiet --plt .dialyzer_plt --src -r src -DTEST -Wunmatched_returns -Werror_handling -Wrace_conditions -Wunderspecs
 
 .dialyzer_plt:
-	@dialyzer --output_plt .dialyzer_plt --build_plt --apps erts kernel stdlib
+	@dialyzer --output_plt .dialyzer_plt --build_plt --apps erts kernel stdlib eunit
 
 cover: .eunit/index.html
 	open .eunit/index.html
