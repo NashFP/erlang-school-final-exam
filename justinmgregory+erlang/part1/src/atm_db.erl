@@ -1,5 +1,5 @@
 %%% atm_db.erl
-%%% @doc Data backend for atm module - currently uses ets
+%%% @doc Data backend for atm module - currently uses ETS
 %%% @author Justin Gregory
 
 -module(atm_db).
