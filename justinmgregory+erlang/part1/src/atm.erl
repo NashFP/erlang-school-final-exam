@@ -15,7 +15,7 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export([start_link/0, check_balance/1, deposit/2, stop/0]).
+-export([start_link/0, check_balance/1, deposit/2, withdraw/2, stop/0]).
 
 
 %% ------------------------------------------------------------------
@@ -32,7 +32,7 @@
 
 -spec start_link() -> started.
 start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []),
+    {ok, _} = gen_server:start_link({local, ?SERVER}, ?MODULE, [], []),
     started.
 
 -spec check_balance(integer()) -> {balance, number()} | no_such_account | atm_closed.
@@ -48,9 +48,17 @@ deposit(AccountNumber, Amount) ->
 		atm_closed -> atm_closed
 	end.
 
+-spec withdraw(integer(), number()) -> {new_balance, number()} | overdrawn | no_such_account | atm_closed.
+withdraw(AccountNumber, Amount) ->
+	case check_balance(AccountNumber) of
+		{balance, Balance} when Balance >= Amount -> set_balance(AccountNumber, Balance - Amount);
+		{balance, _Balance} -> overdrawn;
+		no_such_account -> no_such_account;
+		atm_closed -> atm_closed
+	end.
+
 stop() ->
-	gen_server:call(?SERVER, stop),
-	stopped.
+	try_call(stop).
 
 
 %% ------------------------------------------------------------------
@@ -72,7 +80,7 @@ handle_call({set_balance, AccountNumber, Amount}, _From, State) ->
 	{reply, {new_balance, Amount}, State};
 
 handle_call(stop, _From, State) ->
-	{stop, normal, ok, State};
+	{stop, normal, stopped, State};
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -90,6 +98,7 @@ terminate(_Reason, State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
+
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
@@ -104,6 +113,7 @@ try_call(Message) ->
 set_balance(AccountNumber, NewBalance) ->
 	try_call({set_balance, AccountNumber, NewBalance}),
 	{new_balance, NewBalance}.
+
 
 %% ------------------------------------------------------------------
 %% Testing Functions
@@ -122,7 +132,9 @@ check_balance_on_nonexistent_account_test() ->
 
 atm_closed_test() ->
 	?assertEqual(atm_closed, check_balance(1)),
-	?assertEqual(atm_closed, deposit(1, 100)).
+	?assertEqual(atm_closed, deposit(1, 100)),
+	?assertEqual(atm_closed, withdraw(1, 100)),
+	?assertEqual(atm_closed, stop()).
 
 deposit_test() ->
 	start_link(),
@@ -130,6 +142,14 @@ deposit_test() ->
 	?assertEqual({balance, 100.00}, check_balance(1)),
 	?assertEqual({new_balance, 200.00}, deposit(1, 100.00)),
 	?assertEqual({balance, 200.00}, check_balance(1)),
+	stop().
+
+withdrawal_test() ->
+	start_link(),
+	?assertEqual({new_balance, 100.00}, deposit(1, 100.00)),
+	?assertEqual({new_balance, 50.00}, withdraw(1, 50.00)),
+	?assertEqual(overdrawn, withdraw(1, 100.00)),
+	?assertEqual(no_such_account, withdraw(2, 100.00)),
 	stop().
 
 -endif.
