@@ -3,4 +3,4 @@
 .dialyzer_plt
 doc
 ebin
-ebin-test
+.eunit

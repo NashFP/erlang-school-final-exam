@@ -1,0 +1,3 @@
+{application, atm,
+ [{description, "A simple ATM server for the NashFP Erlang School final exam"},
+  {vsn, "0.1"}]}.

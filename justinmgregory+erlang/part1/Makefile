@@ -1,41 +1,38 @@
 MODULES=atm atm_db
+REBAR=`which rebar || ./rebar`
 
-.PHONY: all
-all: $(patsubst %,ebin/%.beam,$(MODULES))
+.PHONY: all test clean deps compile eunit doc dialyzer
 
-ebin/%.beam: src/%.erl
-	@mkdir -p ebin
-	erlc -o ebin $^
+all: deps
+	@make compile
 
-.PHONY: test
+deps:
+	@$(REBAR) get-deps
+
+compile:
+	@$(REBAR) compile
+
 test: eunit
 	@make dialyzer
 
-.PHONY: eunit
-eunit: $(patsubst %,ebin-test/%.beam,$(MODULES))
-	@cd ebin-test && erl -noshell $(foreach module,$(patsubst ebin-test/%.beam,%,$^),-eval 'io:format("Testing $(module):~n").' -run $(module) test) -run init stop
+eunit:
+	@$(REBAR) skip_deps=true eunit
 
-.PHONY: dialyzer
+clean:
+	@$(REBAR) clean
+
+doc: 
+	@$(REBAR) doc
+
 dialyzer: .dialyzer_plt
 	@echo "Running Dialyzer..."
-	@dialyzer --plt .dialyzer_plt --src -r src -DTEST
+	@dialyzer --plt .dialyzer_plt --src -r src -DTEST -Wunmatched_returns -Werror_handling -Wrace_conditions -Wunderspecs
 
 .dialyzer_plt:
 	@dialyzer --output_plt .dialyzer_plt --build_plt --apps erts kernel stdlib
 
-ebin-test/%.beam: src/%.erl
-	@mkdir -p ebin-test
-	erlc -DTEST -o ebin-test $^
+cover: .eunit/index.html
+	open .eunit/index.html
 
-.PHONY: clean
-clean:
-	-rm ebin/*.beam ebin-test/*.beam
-
-comma:= ,
-empty:=
-space:= $(empty) $(empty)
-
-.PHONY: doc
-doc: $(patsubst %,src/%.erl,$(MODULES))
-	@mkdir -p doc
-	erl -noshell -run edoc_run files '[$(subst $(space),$(comma),$(patsubst %,"%",$^))]' '[{dir,"doc"}]'
+.eunit/index.html:
+	@make eunit
